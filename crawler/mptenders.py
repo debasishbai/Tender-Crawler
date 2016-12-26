@@ -76,7 +76,7 @@ def main():
     Parent function that will call the rest of the functions
     """
     driver = init_chrome()
-    conn = psycopg2.connect(host="localhost", user="postgres", password="psql", dbname="postgres")
+    conn = psycopg2.connect(host="localhost", user="", password="", dbname="postgres")
     cur = conn.cursor()
     print "Database Opened"
     cur.execute("DELETE FROM mp")
