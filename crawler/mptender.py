@@ -28,7 +28,7 @@ class MpTenders(object):
         Initialize chrome, go to homepage and click on tenders link.
         :return: driver
         """
-        display = Display(visible=0, size=(1366, 768))  # Assign visible to 0 to run chrome headless.
+        display = Display(visible=1, size=(1366, 768))  # Assign visible to 0 to run chrome headless.
         display.start()
         options = self.chrome_options()
         driver = webdriver.Chrome(executable_path="/home/debasish/chromedriver", chrome_options=options)
