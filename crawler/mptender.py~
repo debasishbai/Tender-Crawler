@@ -28,7 +28,7 @@ class MpTenders(object):
         Initialize chrome, go to homepage and click on tenders link.
         :return: driver
         """
-        display = Display(visible=0, size=(1366, 768))  # Assign visible to 0 to run chrome headless.
+        display = Display(visible=1, size=(1366, 768))  # Make visible to 0 to run chrome headless.
         display.start()
         options = self.chrome_options()
         driver = webdriver.Chrome(executable_path="/home/debasish/chromedriver", chrome_options=options)
@@ -81,9 +81,9 @@ class MpTenders(object):
         """
         select_dept = driver.find_element_by_css_selector(mppaths.search_bar).click()
         type_dept_name = driver.find_element_by_css_selector(mppaths.type_name).send_keys(dept, Keys.ENTER)
-        logging.info("***Searching Dept . . .")
+        logging.info("Searching Dept . . .")
         search = driver.find_element_by_css_selector(mppaths.search_button).send_keys(Keys.ENTER)
-        logging.info("***Search Completed!")
+        logging.info("Search Completed!")
         print "Dept Name:", dept
         total_tender_scope = driver.find_element_by_css_selector(mppaths.tender_count)
         total_tender = re.findall(r".+:\s?(\w+)", total_tender_scope.text)
@@ -116,13 +116,12 @@ class MpTenders(object):
         for obj in range(len(lister_obj["lister_scope"])):
             duplicate_tender = self.check_for_duplicates(lister_obj["lister_scope"][obj], lister_obj["work_name"][obj])
             if duplicate_tender:
-                logging.warning("*******Duplicate Tender*******")
-                logging.info("****Skipping . . . .")
+                logging.warning("Duplicate Tender")
+                logging.info("Skipping . . .")
                 self.scroll_down(driver, lister_obj["lister_scope"][obj])
                 continue
             else:
-                logging.info("*" * 50)
-                logging.info("*********New Tender*********")
+                logging.info("New Tender")
                 logging.info("Processing . . .")
             documents = self.document_page(driver, lister_obj["lister_scope"][obj])
             main_window = driver.window_handles[0]
@@ -133,8 +132,13 @@ class MpTenders(object):
             driver.switch_to.window(driver.window_handles[2])    # Details Page
             driver.maximize_window()
             logging.info("Reached details page.")
-            # Check whether the details are hidden or not.
-            show_if_hidden = self.check_if_hidden(driver)
+            # Checking whether the details are hidden or not.
+            try:
+                show_if_hidden = driver.find_element_by_css_selector(mppaths.show_hidden_css)
+                show_if_hidden.click()
+                logging.info("Details were Hidden.")
+            except Exception:
+                pass
             details = {}
             for extractor in mppaths.details_scope.keys():
                 data = driver.find_element_by_css_selector(mppaths.details_scope[extractor])
@@ -151,15 +155,6 @@ class MpTenders(object):
             sleep(1)
             # Scroll Down
             self.scroll_down(driver, lister_obj["lister_scope"][obj])
-
-    @staticmethod
-    def check_if_hidden(driver):
-        try:
-            show = driver.find_element_by_css_selector(mppaths.show_hidden_css).click()
-            logging.info("******Details were Hidden******")
-            return 1
-        except Exception:
-            pass
 
     @staticmethod
     def check_for_duplicates(tender_scope, work_name_scope):
@@ -193,7 +188,7 @@ class MpTenders(object):
         for name in documents:
             initiate_cur[1].execute(database.insert_into_doc_table, (primary_id, name))
         initiate_cur[0].commit()
-        logging.info("**********Tender Saved**********")
+        logging.info("Tender Saved into Database!")
 
     @staticmethod
     def document_page(driver, lister_obj):
@@ -221,9 +216,9 @@ class MpTenders(object):
                 if valid_document:
                     document_name.append(file_name[1].text)
                     download = file_name[2].find_element_by_partial_link_text("Download").send_keys(Keys.ENTER)
-                    logging.info("********Documents Downloaded********")
+                    logging.info("Documents downloaded!")
         except Exception as e:
-            logging.info("********No Documents Found********")
+            logging.info("No documents found.")
             return driver.window_handles
 
         return document_name
@@ -247,7 +242,7 @@ class MpTenders(object):
         driver = self.init_chrome()
         departments = self.get_all_dept(driver)
         dept_names = [self.get_html(name) for name in departments]
-        logging.info("**Fetched all the department names**")
+        logging.info("Fetched all the department names.")
         print "No.of Departments:", len(dept_names)
         for dept in dept_names:
             search_dept = self.do_search(driver, dept)
