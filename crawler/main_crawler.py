@@ -6,7 +6,7 @@ from selenium import webdriver
 from datetime import datetime
 from time import sleep
 import logging
-import mppaths
+import configs
 import database
 import re
 import os
@@ -36,7 +36,7 @@ class MpTenders(object):
         driver.maximize_window()
         self.enable_autodownload(driver)
         driver.get("https://www.mpeproc.gov.in/ROOTAPP/tender.jsp?Identity=MPSEDC&db=P")
-        driver.find_element_by_link_text(mppaths.go_to_tender_page).click()
+        driver.find_element_by_link_text(configs.go_to_tender_page).click()
         return driver
 
     @staticmethod
@@ -46,7 +46,7 @@ class MpTenders(object):
         :param driver:
         :return: departments
         """
-        get_dept = driver.find_elements_by_css_selector(mppaths.all_dept_names)
+        get_dept = driver.find_elements_by_css_selector(configs.all_dept_names)
         return get_dept
 
     @staticmethod
@@ -56,7 +56,7 @@ class MpTenders(object):
 
     @staticmethod
     def scroll_down(driver, lister):
-        lister.find_element_by_css_selector(mppaths.random_click).click()
+        lister.find_element_by_css_selector(configs.random_click).click()
         sleep(1)
         # Scroll down to make the objects visible.
         driver.find_element_by_tag_name("body").send_keys(Keys.ARROW_DOWN, Keys.ARROW_DOWN)
@@ -79,13 +79,13 @@ class MpTenders(object):
         :param dept:
         :return: total tenders of each department.
         """
-        select_dept = driver.find_element_by_css_selector(mppaths.search_bar).click()
-        type_dept_name = driver.find_element_by_css_selector(mppaths.type_name).send_keys(dept, Keys.ENTER)
+        select_dept = driver.find_element_by_css_selector(configs.search_bar).click()
+        type_dept_name = driver.find_element_by_css_selector(configs.type_name).send_keys(dept, Keys.ENTER)
         logging.info("***Searching Dept . . .")
-        search = driver.find_element_by_css_selector(mppaths.search_button).send_keys(Keys.ENTER)
+        search = driver.find_element_by_css_selector(configs.search_button).send_keys(Keys.ENTER)
         logging.info("***Search Completed!")
         print "Dept Name:", dept
-        total_tender_scope = driver.find_element_by_css_selector(mppaths.tender_count)
+        total_tender_scope = driver.find_element_by_css_selector(configs.tender_count)
         total_tender = re.findall(r".+:\s?(\w+)", total_tender_scope.text)
         if total_tender[0] == "0":
             return False
@@ -100,8 +100,8 @@ class MpTenders(object):
         :return: scope
         """
         scopes = {}
-        scope = driver.find_elements_by_css_selector(mppaths.lister_scope)
-        work_name_scope = driver.find_elements_by_css_selector(mppaths.work_name_scope)
+        scope = driver.find_elements_by_css_selector(configs.lister_scope)
+        work_name_scope = driver.find_elements_by_css_selector(configs.work_name_scope)
         scopes["lister_scope"] = scope
         scopes["work_name"] = work_name_scope
         return scopes
@@ -128,7 +128,7 @@ class MpTenders(object):
             main_window = driver.window_handles[0]
             document_window = driver.window_handles[1]
             driver.switch_to.window(document_window)    # Document Page
-            details_page = driver.find_element_by_css_selector(mppaths.details_page).send_keys(Keys.ENTER)
+            details_page = driver.find_element_by_css_selector(configs.details_page).send_keys(Keys.ENTER)
             sleep(1)
             driver.switch_to.window(driver.window_handles[2])    # Details Page
             driver.maximize_window()
@@ -136,8 +136,8 @@ class MpTenders(object):
             # Check whether the details are hidden or not.
             show_if_hidden = self.check_if_hidden(driver)
             details = {}
-            for extractor in mppaths.details_scope.keys():
-                data = driver.find_element_by_css_selector(mppaths.details_scope[extractor])
+            for extractor in configs.details_scope.keys():
+                data = driver.find_element_by_css_selector(configs.details_scope[extractor])
                 details[extractor] = data.text
             print details
             logging.info("Details Fetched.")
@@ -155,7 +155,7 @@ class MpTenders(object):
     @staticmethod
     def check_if_hidden(driver):
         try:
-            show = driver.find_element_by_css_selector(mppaths.show_hidden_css).click()
+            show = driver.find_element_by_css_selector(configs.show_hidden_css).click()
             logging.info("******Details were Hidden******")
             return 1
         except Exception:
@@ -170,8 +170,8 @@ class MpTenders(object):
         :return: tender count
         """
         initiate_cur = database.store_data()
-        tender_no = tender_scope.find_element_by_css_selector(mppaths.tender_no).text
-        raw_work_name = work_name_scope.find_element_by_css_selector(mppaths.work_name).text.strip()
+        tender_no = tender_scope.find_element_by_css_selector(configs.tender_no).text
+        raw_work_name = work_name_scope.find_element_by_css_selector(configs.work_name).text.strip()
         work_name = re.match(r".+\n(.+)$", raw_work_name).groups()[0]
         initiate_cur[1].execute(database.check_in_database, (work_name, tender_no))
         tender_count = initiate_cur[1].fetchone()[0]
@@ -203,8 +203,8 @@ class MpTenders(object):
         :param lister_obj:
         :return:
         """
-        action = lister_obj.find_element_by_css_selector(mppaths.action).click()
-        show_form = driver.find_element_by_css_selector(mppaths.show_form)
+        action = lister_obj.find_element_by_css_selector(configs.action).click()
+        show_form = driver.find_element_by_css_selector(configs.show_form)
         point = ActionChains(driver)
         point.move_to_element(show_form).click().perform()
         driver.switch_to_alert().accept()
@@ -235,9 +235,9 @@ class MpTenders(object):
         :param driver:
         :return:
         """
-        settings = driver.get(mppaths.settings)
-        advanced_settings = driver.find_element_by_css_selector(mppaths.enable_autodownload).click()
-        finish = driver.find_elements_by_css_selector(mppaths.finish)
+        settings = driver.get(configs.settings)
+        advanced_settings = driver.find_element_by_css_selector(configs.enable_autodownload).click()
+        finish = driver.find_elements_by_css_selector(configs.finish)
         logging.info("Enabled Auto-download.")
 
     def main(self):
